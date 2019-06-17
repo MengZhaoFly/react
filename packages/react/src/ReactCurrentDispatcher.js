@@ -17,6 +17,9 @@ const ReactCurrentDispatcher = {
    * @internal
    * @type {ReactComponent}
    */
+   /**
+   当前调用哪个组件
+   */
   current: (null: null | Dispatcher),
 };
 

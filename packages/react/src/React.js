@@ -52,6 +52,9 @@ import {
 import ReactSharedInternals from './ReactSharedInternals';
 import {error, warn} from './withComponentStack';
 import {enableEventAPI, enableJSXTransformAPI} from 'shared/ReactFeatureFlags';
+/**
+ * 整个入口
+ */
 const React = {
   Children: {
     map,
@@ -87,6 +90,10 @@ const React = {
   Fragment: REACT_FRAGMENT_TYPE,
   Profiler: REACT_PROFILER_TYPE,
   StrictMode: REACT_STRICT_MODE_TYPE,
+  /**
+   * 异步加载组件
+   * 1: symbol 类型 一个标示
+   */
   Suspense: REACT_SUSPENSE_TYPE,
 
   createElement: __DEV__ ? createElementWithValidation : createElement,

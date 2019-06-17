@@ -10,12 +10,24 @@ import type {LazyComponent, Thenable} from 'shared/ReactLazyComponent';
 import {REACT_LAZY_TYPE} from 'shared/ReactSymbols';
 import warning from 'shared/warning';
 
+/**
+ * 
+ * @param {*} ctor 
+ * 接受一个参数为一个函数，返回 Thenable
+ * 返回 LazyComponent
+ */
 export function lazy<T, R>(ctor: () => Thenable<T, R>): LazyComponent<T> {
   let lazyType = {
     $$typeof: REACT_LAZY_TYPE,
     _ctor: ctor,
     // React uses these fields to store the result.
+    /**
+     * Thenable 状态
+     */
     _status: -1,
+    /**
+     * Thenable 的结果
+     */
     _result: null,
   };
 

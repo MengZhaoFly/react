@@ -7,6 +7,10 @@
  * @flow
  */
 
+ /**
+  * 老的 context 无法精准更新，在父组件更新的时候，导致子组件不必要的渲染
+  */
+
 import {REACT_PROVIDER_TYPE, REACT_CONTEXT_TYPE} from 'shared/ReactSymbols';
 
 import type {ReactContext} from 'shared/ReactTypes';
@@ -31,7 +35,10 @@ export function createContext<T>(
       );
     }
   }
-
+  /**
+   * 返回值
+   * 
+   */
   const context: ReactContext<T> = {
     $$typeof: REACT_CONTEXT_TYPE,
     _calculateChangedBits: calculateChangedBits,
@@ -50,6 +57,11 @@ export function createContext<T>(
     Consumer: (null: any),
   };
 
+  /**
+   * $$typeof: REACT_PROVIDER_TYPE
+   * 这个对象
+   * 其实还是作为 reactElement 的 type 属性来使用的
+   */
   context.Provider = {
     $$typeof: REACT_PROVIDER_TYPE,
     _context: context,
@@ -126,6 +138,10 @@ export function createContext<T>(
     // $FlowFixMe: Flow complains about missing properties because it doesn't understand defineProperty
     context.Consumer = Consumer;
   } else {
+    /**
+     * Consumer 等于自己 context
+     * Consumer 需要获取 context 里面的值 等于本身 便于获取 _currentValue 渲染组件
+     */
     context.Consumer = context;
   }
 

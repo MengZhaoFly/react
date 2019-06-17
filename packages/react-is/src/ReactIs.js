@@ -66,6 +66,10 @@ export function typeOf(object: any) {
 
 // AsyncMode is deprecated along with isAsyncMode
 export const AsyncMode = REACT_ASYNC_MODE_TYPE;
+/**
+ * ConcurrentMode
+ * 任务有优先级
+ */
 export const ConcurrentMode = REACT_CONCURRENT_MODE_TYPE;
 export const ContextConsumer = REACT_CONTEXT_TYPE;
 export const ContextProvider = REACT_PROVIDER_TYPE;

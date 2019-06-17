@@ -8,7 +8,22 @@
 import {REACT_FORWARD_REF_TYPE, REACT_MEMO_TYPE} from 'shared/ReactSymbols';
 
 import warningWithoutStack from 'shared/warningWithoutStack';
-
+/**
+ * 
+ * @param {*} render 
+ * ref 不属于 props 里面
+ * forwardRef 传递 ref 
+ * forwardRef 返回的组件 type 并不是 $$typeof: REACT_FORWARD_REF_TYPE,
+ * const Component = React.forwardRef((props, ref) => <input {...props} ref={ref}>)
+ * render: () => <Component />
+ * 组件依然会是 REACT_ELEMENT_TYPE
+ * {
+ * $$typeof: REACT_ELEMENT_TYPE,
+   type: {
+     $$typeof: REACT_FORWARD_REF_TYPE
+    }
+ * }
+ */
 export default function forwardRef<Props, ElementType: React$ElementType>(
   render: (props: Props, ref: React$Ref<ElementType>) => React$Node,
 ) {
