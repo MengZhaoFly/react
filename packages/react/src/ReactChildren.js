@@ -129,6 +129,10 @@ function traverseAllChildrenImpl(
   }
 
   if (invokeCallback) {
+    /**
+     * 如果 非数组
+     * mapSingleChildIntoContext 的 call 则会执行
+     */
     callback(
       traverseContext,
       children,
@@ -144,7 +148,10 @@ function traverseAllChildrenImpl(
   let subtreeCount = 0; // Count of children found in the current subtree.
   const nextNamePrefix =
     nameSoFar === '' ? SEPARATOR : nameSoFar + SUBSEPARATOR;
-
+    /**
+     * 是 数组
+     * 继续递归 调用 traverseAllChildrenImpl
+     */
   if (Array.isArray(children)) {
     for (let i = 0; i < children.length; i++) {
       child = children[i];
@@ -287,9 +294,15 @@ function forEachChildren(children, forEachFunc, forEachContext) {
 
 function mapSingleChildIntoContext(bookKeeping, child, childKey) {
   const {result, keyPrefix, func, context} = bookKeeping;
-
+  /**
+   *  func 用户传入的 React.mapChildren(children, func);
+   *  */
   let mappedChild = func.call(context, child, bookKeeping.count++);
   if (Array.isArray(mappedChild)) {
+    // getPooledTraverseContext 里面的 func 设为 c => c 简单返回该节点 就ok
+    /**
+     * 大的一个递归
+     */
     mapIntoWithKeyPrefixInternal(mappedChild, result, childKey, c => c);
   } else if (mappedChild != null) {
     if (isValidElement(mappedChild)) {
@@ -304,6 +317,9 @@ function mapSingleChildIntoContext(bookKeeping, child, childKey) {
           childKey,
       );
     }
+    /**
+     * result
+     */
     result.push(mappedChild);
   }
 }
@@ -342,6 +358,9 @@ function mapChildren(children, func, context) {
   }
   const result = [];
   mapIntoWithKeyPrefixInternal(children, result, null, func, context);
+  /**
+   * map 有返回结果
+   */
   return result;
 }
 
