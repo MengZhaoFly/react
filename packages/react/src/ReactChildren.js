@@ -4,6 +4,15 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+/**
+ * export {
+  forEachChildren as forEach,
+  mapChildren as map,
+  countChildren as count,
+  onlyChild as only,
+  toArray,
+};
+ */
 
 import invariant from 'shared/invariant';
 import warning from 'shared/warning';
@@ -351,6 +360,9 @@ function mapIntoWithKeyPrefixInternal(children, array, prefix, func, context) {
  * @param {function(*, int)} func The map function.
  * @param {*} context Context for mapFunction.
  * @return {object} Object containing the ordered map of results.
+ */
+/**
+ * 调用：React.Children.map(children, function(){})
  */
 function mapChildren(children, func, context) {
   if (children == null) {
