@@ -166,6 +166,7 @@ function scheduleRootUpdate(
   if (revertPassiveEffectsChange) {
     flushPassiveEffects();
   }
+  // update 
   enqueueUpdate(current, update);
   scheduleWork(current, expirationTime);
 

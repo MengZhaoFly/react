@@ -40,6 +40,8 @@ import {
   flushPassiveEffects,
   ReactActingRendererSigil,
 } from 'react-reconciler/inline.dom';
+/** react-reconciler 任务调度的
+ */
 import {createPortal as createPortalImpl} from 'shared/ReactPortal';
 import {canUseDOM} from 'shared/ExecutionEnvironment';
 import {setBatchingImplementation} from 'events/ReactGenericBatching';
@@ -55,6 +57,9 @@ import {
   accumulateTwoPhaseDispatches,
   accumulateDirectDispatches,
 } from 'events/EventPropagators';
+/** 
+  LegacyRoot = 0; BatchedRoot = 1; ConcurrentRoot = 2;
+ */
 import {LegacyRoot, ConcurrentRoot, BatchedRoot} from 'shared/ReactRootTags';
 import {has as hasInstance} from 'shared/ReactInstanceMap';
 import ReactVersion from 'shared/ReactVersion';
@@ -375,6 +380,16 @@ function ReactSyncRoot(
 }
 
 function ReactRoot(container: DOMContainer, hydrate: boolean) {
+  /**
+   * export function createContainer(
+        containerInfo: Container,
+        tag: RootTag,
+        hydrate: boolean,
+      ): OpaqueRoot {
+        return createFiberRoot(containerInfo, tag, hydrate);
+      }
+      创建了一个 createFiberRoot 
+   */
   const root = createContainer(container, ConcurrentRoot, hydrate);
   this._internalRoot = root;
 }
@@ -471,7 +486,10 @@ function getReactRootElementInContainer(container: any) {
     return container.firstChild;
   }
 }
-
+/**
+ * 
+ * @param {*} container 
+ */
 function shouldHydrateDueToLegacyHeuristic(container) {
   const rootElement = getReactRootElementInContainer(container);
   return !!(
@@ -497,6 +515,7 @@ function legacyCreateRootFromDOMContainer(
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 不需要调和 一个循环 从最后一个节点 开始 一一删除所有的节点
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -534,7 +553,10 @@ function legacyCreateRootFromDOMContainer(
   // Legacy roots are not batched.
   return new ReactSyncRoot(container, LegacyRoot, shouldHydrate);
 }
-
+/**
+ * render（null, element, getelementByid, false, callback）
+   render(element, '#root')
+ */
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
@@ -553,6 +575,11 @@ function legacyRenderSubtreeIntoContainer(
   let fiberRoot;
   if (!root) {
     // Initial mount
+    /** 操作-> createFiberRoot
+    {
+      _internalRoot: root
+    }
+     */
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
@@ -566,6 +593,7 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // 批量更新的操作 
     unbatchedUpdates(() => {
       updateContainer(children, fiberRoot, parentComponent, callback);
     });
@@ -596,7 +624,9 @@ function createPortal(
   // TODO: pass ReactDOM portal implementation as third argument
   return createPortalImpl(children, container, null, key);
 }
-
+/**
+ * 
+ */
 const ReactDOM: Object = {
   createPortal,
 
@@ -632,6 +662,9 @@ const ReactDOM: Object = {
     return findHostInstance(componentOrElement);
   },
 
+  /**
+   * 复用
+   */
   hydrate(element: React$Node, container: DOMContainer, callback: ?Function) {
     invariant(
       isValidContainer(container),
@@ -656,6 +689,12 @@ const ReactDOM: Object = {
     );
   },
 
+  /**
+   * 
+   * @param {*} element 应用入口
+   * @param {*} container  节点
+   * @param {*} callback  回调
+   */
   render(
     element: React$Element<any>,
     container: DOMContainer,
