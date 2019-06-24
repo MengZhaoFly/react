@@ -67,8 +67,49 @@ function getReactRootElementInContainer(container: any) {
 
 2. updateContainer 创建 expirationTime
 3. ```js
+  [enqueueUpdate && scheduleWork](https://github.com/MengZhaoFly/react/blob/master/packages/react-reconciler/src/ReactFiberReconciler.js#L170)
   enqueueUpdate(current, update);
   scheduleWork(current, expirationTime);
   ```
 
   创建更新，调度更新
+
+## update && updateQueue
+1. react/packages/react-reconciler/src/ReactFiberReconciler.js
+   [createUpdate()](https://github.com/MengZhaoFly/react/blob/master/packages/react-reconciler/src/ReactFiberReconciler.js#L150)
+   ```js
+   createUpdate()
+   export type Update<State> = {
+     // 更新过期时间
+      expirationTime: ExpirationTime,
+      suspenseConfig: null | SuspenseConfig,
+      // 0 updateState 1 replaceState 2 forceUpdate 3 captureUpdate
+      tag: 0 | 1 | 2 | 3,
+      payload: any,
+      callback: (() => mixed) | null,
+      // 下一个更新 update 存在 updateQueue 里面 类似单向列表
+      next: Update<State> | null,
+      nextEffect: Update<State> | null,
+    };
+   ```
+2. updateQueue 的结构
+   ```js
+   export type UpdateQueue<State> = {
+  baseState: State,
+
+  firstUpdate: Update<State> | null,
+  lastUpdate: Update<State> | null,
+
+  firstCapturedUpdate: Update<State> | null,
+  lastCapturedUpdate: Update<State> | null,
+
+  firstEffect: Update<State> | null,
+  lastEffect: Update<State> | null,
+
+  firstCapturedEffect: Update<State> | null,
+  lastCapturedEffect: Update<State> | null,
+  };
+  ```
+3. enqueueUpdate
+   创建 或者 更新 updateQueue
+
