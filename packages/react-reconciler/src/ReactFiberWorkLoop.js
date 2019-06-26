@@ -284,7 +284,9 @@ export function computeExpirationForFiber(
   if ((mode & BatchedMode) === NoMode) {
     return Sync;
   }
-
+  /**
+   * 得到优先级
+   */
   const priorityLevel = getCurrentPriorityLevel();
   if ((mode & ConcurrentMode) === NoMode) {
     return priorityLevel === ImmediatePriority ? Sync : Batched;

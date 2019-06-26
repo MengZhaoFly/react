@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    
+    /**
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @flow
+ */
+const MAX_SIGNED_31_BIT_INT = 1073741823;
+
+
+
+ const NoWork = 0;
+ const Never = 1;
+ const Sync = MAX_SIGNED_31_BIT_INT;
+ const Batched = Sync - 1;
+
+const UNIT_SIZE = 10;
+const MAGIC_NUMBER_OFFSET = Batched - 1;
+
+// 1 unit of expiration time represents 10ms.
+ function msToExpirationTime(ms) {
+  // Always add an offset so that we don't clash with the magic number for NoWork.
+  return MAGIC_NUMBER_OFFSET - ((ms / UNIT_SIZE) | 0);
+}
+
+ function expirationTimeToMs(expirationTime) {
+  return (MAGIC_NUMBER_OFFSET - expirationTime) * UNIT_SIZE;
+}
+
+function ceiling(num, precision) {
+  return (((num / precision) | 0) + 1) * precision;
+}
+/* bucketSizeMs 100
+expirationInMs 500 
+UNIT_SIZE 10
+*/
+function computeExpirationBucket(
+  currentTime,
+  expirationInMs,
+  bucketSizeMs,
+) {
+  return (
+    MAGIC_NUMBER_OFFSET -
+    ceiling(
+      MAGIC_NUMBER_OFFSET - currentTime + expirationInMs / UNIT_SIZE,
+      bucketSizeMs / UNIT_SIZE,
+    )
+  );
+}
+
+ const LOW_PRIORITY_EXPIRATION = 5000;
+ const LOW_PRIORITY_BATCH_SIZE = 250;
+/**
+ * 
+ * 调用 computeExpirationBucket
+ */
+ function computeAsyncExpiration(
+  currentTime,
+) {
+  return computeExpirationBucket(
+    currentTime,
+    LOW_PRIORITY_EXPIRATION,
+    LOW_PRIORITY_BATCH_SIZE,
+  );
+}
+const __DEV__ = true;
+ const HIGH_PRIORITY_EXPIRATION = __DEV__ ? 500 : 150;
+ const HIGH_PRIORITY_BATCH_SIZE = 100;
+
+ function computeInteractiveExpiration(currentTime) {
+  return computeExpirationBucket(
+    currentTime,
+    HIGH_PRIORITY_EXPIRATION,
+    HIGH_PRIORITY_BATCH_SIZE,
+  );
+}
+
+console.log('computeInteractiveExpiration', computeInteractiveExpiration(100))
+console.log('computeAsyncExpiration', computeAsyncExpiration(100))
+
+console.log('computeInteractiveExpiration', computeInteractiveExpiration(101))
+console.log('computeAsyncExpiration', computeAsyncExpiration(101))
+
+    </script>
+</body>
+</html>

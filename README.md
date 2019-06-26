@@ -4,7 +4,7 @@
 2. 第一步调用 mapIntoWithKeyPrefixInternal 
    会先从对象池里面取出一个对象，把 result 和 callback 都交给它，
 3. 会拍平数组
-     1. 全靠 `traverseAllChildrenImpl `发力， 递归 了一遍 children，
+    1. 全靠 `traverseAllChildrenImpl `发力， 递归 了一遍 children，
       如果符合
 
       ```js
@@ -56,7 +56,6 @@ function getReactRootElementInContainer(container: any) {
 ```
 
 ## render
-
 1. ```js
     legacyCreateRootFromDOMContainer(
       container,
@@ -64,15 +63,13 @@ function getReactRootElementInContainer(container: any) {
     );
     ```
     创建一个 FiberRoot
-
 2. updateContainer 创建 expirationTime
-3. ```js
+3. 创建更新，调度更新
+ ```js
   [enqueueUpdate && scheduleWork](https://github.com/MengZhaoFly/react/blob/master/packages/react-reconciler/src/ReactFiberReconciler.js#L170)
   enqueueUpdate(current, update);
   scheduleWork(current, expirationTime);
   ```
-
-  创建更新，调度更新
 
 ## update && updateQueue
 1. react/packages/react-reconciler/src/ReactFiberReconciler.js
@@ -93,8 +90,8 @@ function getReactRootElementInContainer(container: any) {
     };
    ```
 2. updateQueue 的结构
-   ```js
-   export type UpdateQueue<State> = {
+```js
+  export type UpdateQueue<State> = {
   baseState: State,
 
   firstUpdate: Update<State> | null,
@@ -109,7 +106,36 @@ function getReactRootElementInContainer(container: any) {
   firstCapturedEffect: Update<State> | null,
   lastCapturedEffect: Update<State> | null,
   };
-  ```
+```
 3. enqueueUpdate
    创建 或者 更新 updateQueue
+
+## 计算 ExpirationTime
+更新的一个过期时间
+```js
+// 整理了一个文件
+// react/packages/react-reconciler/src/ReactFiberExpirationTime.html
+/* bucketSizeMs 100
+expirationInMs 500 
+UNIT_SIZE 10
+*/
+运行：computeInteractiveExpiration(102) ～ computeInteractiveExpiration(111) 得到的结果都是一样的。
+function ceiling(num, precision) {
+  return (((num / precision) | 0) + 1) * precision;
+}
+function computeExpirationBucket(
+  currentTime,
+  expirationInMs,
+  bucketSizeMs,
+) {
+  return (
+    MAGIC_NUMBER_OFFSET -
+    ceiling(
+      MAGIC_NUMBER_OFFSET - currentTime + expirationInMs / UNIT_SIZE,
+      bucketSizeMs / UNIT_SIZE,
+    )
+  );
+}
+原因：precision 固定为 10， 导致 在进行 num / precision | 0 运算时，只要两个数之间的差距不超过10，得到的结果都一样，这样得到一个相同的 expirationtime 的好处是，在进行 大量的 setState 时候，某一很小的时间间距内段内的expirationtime一样。
+```
 

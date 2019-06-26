@@ -60,7 +60,10 @@ function computeExpirationBucket(
 // the names to reflect.
 export const LOW_PRIORITY_EXPIRATION = 5000;
 export const LOW_PRIORITY_BATCH_SIZE = 250;
-
+/**
+ * 
+ * 调用 computeExpirationBucket
+ */
 export function computeAsyncExpiration(
   currentTime: ExpirationTime,
 ): ExpirationTime {
@@ -70,7 +73,10 @@ export function computeAsyncExpiration(
     LOW_PRIORITY_BATCH_SIZE,
   );
 }
-
+/**
+ * 
+ * 调用 computeExpirationBucket
+ */
 export function computeSuspenseExpiration(
   currentTime: ExpirationTime,
   timeoutMs: number,
