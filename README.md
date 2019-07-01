@@ -111,6 +111,7 @@ function getReactRootElementInContainer(container: any) {
    创建 或者 更新 updateQueue
 
 ## 计算 ExpirationTime
+异步任务优先级比较低，可能会被打断，因为会被打断，为了防止一直被打断，所以设置 expirationTime,在这个时间之前都可以被打断，过了这个时间就会强制执行。
 更新的一个过期时间
 ```js
 // 整理了一个文件
@@ -138,4 +139,43 @@ function computeExpirationBucket(
 }
 原因：precision 固定为 10， 导致 在进行 num / precision | 0 运算时，只要两个数之间的差距不超过10，得到的结果都一样，这样得到一个相同的 expirationtime 的好处是，在进行 大量的 setState 时候，某一很小的时间间距内段内的expirationtime一样。
 ```
+## 不同的 expirationTime
+sync模式
+异步模式
+指定 context
+[computeExpirationForFiber](https://github.com/MengZhaoFly/react/blob/master/packages/react-reconciler/src/ReactFiberWorkLoop.js#L278)
+根据优先级和fiber.mode 判断到底该用哪个时间
+
+## setState && forceUpdate
+给节点的 Fiber 创建更新
+更新的类型不同
+流程：
+1. 添加tag
+2. 创建更新
+3. 进入 scheduleWork
+```js
+enqueueForceUpdate(inst, callback) {
+    const fiber = getInstance(inst);
+    const currentTime = requestCurrentTime();
+    const suspenseConfig = requestCurrentSuspenseConfig();
+    const expirationTime = computeExpirationForFiber(
+      currentTime,
+      fiber,
+      suspenseConfig,
+    );
+    const update = createUpdate(expirationTime, suspenseConfig);
+    update.tag = ForceUpdate;
+
+    if (callback !== undefined && callback !== null) {
+      update.callback = callback;
+    }
+
+    if (revertPassiveEffectsChange) {
+      flushPassiveEffects();
+    }
+    enqueueUpdate(fiber, update);
+    scheduleWork(fiber, expirationTime);
+  },
+```
+
 

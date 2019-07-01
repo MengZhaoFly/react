@@ -183,6 +183,7 @@ export function applyDerivedStateFromProps(
 const classComponentUpdater = {
   isMounted,
   enqueueSetState(inst, payload, callback) {
+    // 
     const fiber = getInstance(inst);
     const currentTime = requestCurrentTime();
     const suspenseConfig = requestCurrentSuspenseConfig();

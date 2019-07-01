@@ -282,12 +282,18 @@ export function computeExpirationForFiber(
 ): ExpirationTime {
   const mode = fiber.mode;
   if ((mode & BatchedMode) === NoMode) {
+    /** 
+     * Sync 一个数字
+     */
     return Sync;
   }
   /**
    * 得到优先级
    */
   const priorityLevel = getCurrentPriorityLevel();
+  /**
+   * 不处于 ConcurrentMode & 运算 得到 0 || 1
+   */
   if ((mode & ConcurrentMode) === NoMode) {
     return priorityLevel === ImmediatePriority ? Sync : Batched;
   }
@@ -312,6 +318,9 @@ export function computeExpirationForFiber(
         break;
       case UserBlockingPriority:
         // TODO: Rename this to computeUserBlockingExpiration
+        /**
+         * export const UserBlockingPriority: ReactPriorityLevel = 98;
+         */
         expirationTime = computeInteractiveExpiration(currentTime);
         break;
       case NormalPriority:
@@ -433,19 +442,27 @@ export const scheduleWork = scheduleUpdateOnFiber;
 // work without treating it as a typical update that originates from an event;
 // e.g. retrying a Suspense boundary isn't an update, but it does schedule work
 // on a fiber.
+/**
+ * 根据 
+ */
 function markUpdateTimeFromFiberToRoot(fiber, expirationTime) {
+  // 更新源fiber（产生更新的 fiber 节点）的过期时间
   // Update the source fiber's expiration time
   if (fiber.expirationTime < expirationTime) {
     fiber.expirationTime = expirationTime;
+
   }
   let alternate = fiber.alternate;
   if (alternate !== null && alternate.expirationTime < expirationTime) {
     alternate.expirationTime = expirationTime;
   }
   // Walk the parent path to the root and update the child expiration time.
+  // 上一层 
   let node = fiber.return;
   let root = null;
+  // 说明 root 是 rootFiber HostRoot 同样代表 rootFiber
   if (node === null && fiber.tag === HostRoot) {
+    // stateNode 指向 Fiberroot
     root = fiber.stateNode;
   } else {
     while (node !== null) {
@@ -1975,8 +1992,10 @@ function captureCommitPhaseErrorOnRoot(
   const errorInfo = createCapturedValue(error, sourceFiber);
   const update = createRootErrorUpdate(rootFiber, errorInfo, Sync);
   enqueueUpdate(rootFiber, update);
+  // 得到 fiberRoot
   const root = markUpdateTimeFromFiberToRoot(rootFiber, Sync);
   if (root !== null) {
+    // export const ImmediatePriority: ReactPriorityLevel = 99;
     scheduleCallbackForRoot(root, ImmediatePriority, Sync);
   }
 }
