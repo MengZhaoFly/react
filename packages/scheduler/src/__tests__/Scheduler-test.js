@@ -52,6 +52,7 @@ describe('Scheduler', () => {
         throw new Error('No work is scheduled.');
       }
       timeoutID = -1;
+      // 一帧到期时间
       endOfFrame = currentTime + frameSize;
       try {
         isFlushing = true;

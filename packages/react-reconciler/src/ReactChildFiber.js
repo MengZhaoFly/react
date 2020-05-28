@@ -729,7 +729,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     }
     return knownKeys;
   }
-
+// 比较两个 key 是否一样
   function reconcileChildrenArray(
     returnFiber: Fiber,
     currentFirstChild: Fiber | null,
@@ -1123,6 +1123,7 @@ function ChildReconciler(shouldTrackSideEffects) {
             ? element.type === REACT_FRAGMENT_TYPE
             : child.elementType === element.type
         ) {
+          // key 相等，元素类型相等
           deleteRemainingChildren(returnFiber, child.sibling);
           const existing = useFiber(
             child,
@@ -1158,6 +1159,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       created.return = returnFiber;
       return created;
     } else {
+      // 为 该元素 创建一个 Fiber 对象
       const created = createFiberFromElement(
         element,
         returnFiber.mode,
@@ -1235,6 +1237,7 @@ function ChildReconciler(shouldTrackSideEffects) {
       newChild !== null &&
       newChild.type === REACT_FRAGMENT_TYPE &&
       newChild.key === null;
+      // Fragment 类型
     if (isUnkeyedTopLevelFragment) {
       newChild = newChild.props.children;
     }
@@ -1245,6 +1248,7 @@ function ChildReconciler(shouldTrackSideEffects) {
     if (isObject) {
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
+        // 处理 react 普通元素 
           return placeSingleChild(
             reconcileSingleElement(
               returnFiber,

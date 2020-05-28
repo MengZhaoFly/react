@@ -914,7 +914,7 @@ function getHostSibling(fiber: Fiber): ?Instance {
     }
   }
 }
-
+// 做一些节点插入的
 function commitPlacement(finishedWork: Fiber): void {
   if (!supportsMutation) {
     return;

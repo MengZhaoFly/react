@@ -49,7 +49,11 @@ const userProvidedKeyEscapeRegex = /\/+/g;
 function escapeUserProvidedKey(text) {
   return ('' + text).replace(userProvidedKeyEscapeRegex, '$&/');
 }
-
+/**
+ * 一个创建对象的一个池子：
+ 如果创建很多对象，销毁很多对象，内存会忽高忽低，
+ 用这个“池子”，会让内存更加平滑
+ */
 const POOL_SIZE = 10;
 const traverseContextPool = [];
 function getPooledTraverseContext(
@@ -284,7 +288,9 @@ function forEachChildren(children, forEachFunc, forEachContext) {
   traverseAllChildren(children, forEachSingleChild, traverseContext);
   releaseTraverseContext(traverseContext);
 }
-
+/**
+ * 遍历每个 childRen，如果是嵌套数组那么，递归拍平，否则 clone 一下放到数组里面去
+ */
 function mapSingleChildIntoContext(bookKeeping, child, childKey) {
   const {result, keyPrefix, func, context} = bookKeeping;
 

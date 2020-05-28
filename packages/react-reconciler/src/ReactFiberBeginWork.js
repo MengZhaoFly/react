@@ -172,6 +172,11 @@ export function reconcileChildren(
 
     // If we had any progressed work already, that is invalid at this point so
     // let's throw it out.
+    // 参数：
+    // workInProgress 父节点
+    // current.child 原来的节点
+    // nextChildren 新的节点
+    // 第一次 render 没有 child，这一步，则会添加
     workInProgress.child = reconcileChildFibers(
       workInProgress,
       current.child,
@@ -620,7 +625,7 @@ function updateFunctionComponent(
   );
   return workInProgress.child;
 }
-
+// 更新类组件
 function updateClassComponent(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -671,12 +676,16 @@ function updateClassComponent(
       workInProgress.effectTag |= Placement;
     }
     // In the initial pass we might need to construct the instance.
+    // 创建实例：workInProgress.alternate = instance
     constructClassInstance(
       workInProgress,
       Component,
       nextProps,
       renderExpirationTime,
     );
+    // 执行生命周期
+    // getDerivedStateFromProps 将产生新的 state 放在 fiber 上面
+    // 有 componentDidMount 更新 workInProgress 上面的一个 tag
     mountClassInstance(
       workInProgress,
       Component,
@@ -834,7 +843,8 @@ function pushHostRootContext(workInProgress) {
   }
   pushHostContainer(workInProgress, root.containerInfo);
 }
-
+// updateHostRoot 类型的节点（rootFiber，根fiber 节点）
+// 更新完返回，第一个子节点
 function updateHostRoot(current, workInProgress, renderExpirationTime) {
   pushHostRootContext(workInProgress);
   const updateQueue = workInProgress.updateQueue;
@@ -847,6 +857,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
   const nextProps = workInProgress.pendingProps;
   const prevState = workInProgress.memoizedState;
   const prevChildren = prevState !== null ? prevState.element : null;
+  // 处理 UpdateQueue 形成 effect list
   processUpdateQueue(
     workInProgress,
     updateQueue,
@@ -868,6 +879,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
       renderExpirationTime,
     );
   }
+  // 拿到 要渲染的哪个节点下面去
   const root: FiberRoot = workInProgress.stateNode;
   if (
     (current === null || current.child === null) &&
@@ -897,6 +909,7 @@ function updateHostRoot(current, workInProgress, renderExpirationTime) {
   } else {
     // Otherwise reset hydration state in case we aborted and resumed another
     // root.
+    // reconcile
     reconcileChildren(
       current,
       workInProgress,
@@ -1857,7 +1870,6 @@ function updateContextConsumer(
 export function markWorkInProgressReceivedUpdate() {
   didReceiveUpdate = true;
 }
-
 function bailoutOnAlreadyFinishedWork(
   current: Fiber | null,
   workInProgress: Fiber,
@@ -1890,13 +1902,13 @@ function bailoutOnAlreadyFinishedWork(
   }
 }
 
-function beginWork(
+function beginWork(  // 会执行生命周期
   current: Fiber | null,
   workInProgress: Fiber,
   renderExpirationTime: ExpirationTime,
 ): Fiber | null {
   const updateExpirationTime = workInProgress.expirationTime;
-
+  // 判断节点 是不是第一次渲染
   if (current !== null) {
     const oldProps = current.memoizedProps;
     const newProps = workInProgress.pendingProps;
@@ -2056,6 +2068,7 @@ function beginWork(
       );
     }
     case HostRoot:
+      // rootFiber 就是 HostRoot 类型的
       return updateHostRoot(current, workInProgress, renderExpirationTime);
     case HostComponent:
       return updateHostComponent(current, workInProgress, renderExpirationTime);

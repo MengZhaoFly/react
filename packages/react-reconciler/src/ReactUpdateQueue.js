@@ -156,7 +156,9 @@ if (__DEV__) {
 export function createUpdateQueue<State>(baseState: State): UpdateQueue<State> {
   const queue: UpdateQueue<State> = {
     baseState,
+    //队列中的第一个 update
     firstUpdate: null,
+    //队列中的最后一个 update
     lastUpdate: null,
     firstCapturedUpdate: null,
     lastCapturedUpdate: null,
@@ -192,10 +194,17 @@ function cloneUpdateQueue<State>(
 
 export function createUpdate(expirationTime: ExpirationTime): Update<*> {
   return {
+    // 过期时间
     expirationTime: expirationTime,
-
+    // export const UpdateState = 0; 表示更新State
+    // export const ReplaceState = 1; 表示替换State
+    // export const ForceUpdate = 2; 强制更新
+    // export const CaptureUpdate = 3; 捕获更新（发生异常错误的时候发生）
+    // 指定更新的类型，值为以上几种
     tag: UpdateState,
+    // 更新内容，比如`setState`接收的第一个参数
     payload: null,
+    // 更新完成后的回调，比如 `setState`，`render`的回调
     callback: null,
 
     next: null,
@@ -216,12 +225,16 @@ function appendUpdateToQueue<State>(
     queue.lastUpdate = update;
   }
 }
-
+// 创建、更新 updateQueue
 export function enqueueUpdate<State>(fiber: Fiber, update: Update<State>) {
   // Update queues are created lazily.
+  // current -> work-in-progress 对应的 updateQueue
+  // fiber: current
+  // alternate: work-in-progress
   const alternate = fiber.alternate;
   let queue1;
   let queue2;
+  // 保证 两个 queque 一样
   if (alternate === null) {
     // There's only one fiber.
     queue1 = fiber.updateQueue;
@@ -436,6 +449,7 @@ export function processUpdateQueue<State>(
   // Iterate through the list of updates to compute the result.
   let update = queue.firstUpdate;
   let resultState = newBaseState;
+  // 当然是要处理 队列里所有的更新了
   while (update !== null) {
     const updateExpirationTime = update.expirationTime;
     if (updateExpirationTime < renderExpirationTime) {
@@ -466,9 +480,11 @@ export function processUpdateQueue<State>(
       );
       const callback = update.callback;
       if (callback !== null) {
+        // 第一次render 到这修改了个 tag，
         workInProgress.effectTag |= Callback;
         // Set this to null, in case it was mutated during an aborted render.
         update.nextEffect = null;
+        // 打上 effect 
         if (queue.lastEffect === null) {
           queue.firstEffect = queue.lastEffect = update;
         } else {
@@ -543,7 +559,7 @@ export function processUpdateQueue<State>(
     // state is the same as the result state.
     newBaseState = resultState;
   }
-
+  // 已经形成 effect list
   queue.baseState = newBaseState;
   queue.firstUpdate = newFirstUpdate;
   queue.firstCapturedUpdate = newFirstCapturedUpdate;

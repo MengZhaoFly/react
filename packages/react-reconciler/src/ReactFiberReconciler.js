@@ -135,7 +135,7 @@ function scheduleRootUpdate(
       );
     }
   }
-
+  // 创建更新
   const update = createUpdate(expirationTime);
   // Caution: React DevTools currently depends on this property
   // being called "element".
@@ -153,12 +153,15 @@ function scheduleRootUpdate(
   }
 
   flushPassiveEffects();
+  /**
+   * current: 对应 一个 fiber 对象
+   */
   enqueueUpdate(current, update);
   scheduleWork(current, expirationTime);
 
   return expirationTime;
 }
-
+// 
 export function updateContainerAtExpirationTime(
   element: ReactNodeList,
   container: OpaqueRoot,
@@ -187,7 +190,7 @@ export function updateContainerAtExpirationTime(
   } else {
     container.pendingContext = context;
   }
-
+  // 开始进行任务调度，ReactDom.render() 到此结束
   return scheduleRootUpdate(current, element, expirationTime, callback);
 }
 
@@ -279,7 +282,7 @@ export function createContainer(
 ): OpaqueRoot {
   return createFiberRoot(containerInfo, isConcurrent, hydrate);
 }
-
+// reactDom.render 调用这里
 export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
@@ -288,6 +291,8 @@ export function updateContainer(
 ): ExpirationTime {
   const current = container.current;
   const currentTime = requestCurrentTime();
+  // fiber 异步渲染 时间切片
+  // ExpirationTime 任务 在之之前 你都可以打断我，但是过了这个时期，必须执行
   const expirationTime = computeExpirationForFiber(currentTime, current);
   return updateContainerAtExpirationTime(
     element,

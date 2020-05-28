@@ -28,6 +28,7 @@ export type WorkTag =
   | 17
   | 18;
 
+// Fiber 的 WorkTag：啥类型的组件
 export const FunctionComponent = 0;
 export const ClassComponent = 1;
 export const IndeterminateComponent = 2; // Before we know whether it is function or class

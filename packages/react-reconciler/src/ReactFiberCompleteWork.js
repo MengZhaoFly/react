@@ -581,6 +581,7 @@ function completeWork(
       break;
     }
     case HostComponent: {
+      // div: 宿主 组件  <div>a1</div>
       popHostContext(workInProgress);
       const rootContainerInstance = getRootHostContainer();
       const type = workInProgress.type;
@@ -628,6 +629,7 @@ function completeWork(
             markUpdate(workInProgress);
           }
         } else {
+          // 实例化
           let instance = createInstance(
             type,
             newProps,
@@ -652,6 +654,7 @@ function completeWork(
           ) {
             markUpdate(workInProgress);
           }
+          // stateNode 就指向一个真实的 DOM 节点
           workInProgress.stateNode = instance;
         }
 

@@ -117,29 +117,39 @@ export function createFiberRoot(
   let root;
   if (enableSchedulerTracing) {
     root = ({
+      // 当前应用对应的Fiber对象，是Root Fiber
       current: uninitializedFiber,
+      // render方法接收的第二个参数
       containerInfo: containerInfo,
+      // SSR 
       pendingChildren: null,
-
+      // 一堆 time 标记不同任务优先级
+      // 最老和最新的不确定是否会挂起的优先级
       earliestPendingTime: NoWork,
       latestPendingTime: NoWork,
+      // 最老和新的在提交的时候被挂起的任务
       earliestSuspendedTime: NoWork,
       latestSuspendedTime: NoWork,
+      // 最新的通过一个 promise 被 reslove并且可以重新尝试的优先级
       latestPingedTime: NoWork,
 
       pingCache: null,
-
+      // 
       didError: false,
 
       pendingCommitExpirationTime: NoWork,
-      finishedWork: null,
+
+      finishedWork: null,   // commit 
       timeoutHandle: noTimeout,
       context: null,
       pendingContext: null,
       hydrate,
+      // 
       nextExpirationTimeToWorkOn: NoWork,
+      // 当前更新对应的过期时间
       expirationTime: NoWork,
       firstBatch: null,
+      // root之间关联的链表结构
       nextScheduledRoot: null,
 
       interactionThreadID: unstable_getThreadID(),

@@ -1,14 +1,94 @@
 <html>
-  <body>
-    <script src="../../../build/node_modules/react/umd/react.development.js"></script>
-    <script src="../../../build/node_modules/react-dom/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/babel-standalone@6/babel.js"></script>
-    <div id="container"></div>
-    <script type="text/babel">
-      ReactDOM.render(
-        <h1>Hello World!</h1>,
-        document.getElementById('container')
-      );
-    </script>
-  </body>
+
+<body>
+  <script charset="UTF-8" src="../../../build/node_modules/react/umd/react.development.js"></script>
+  <script charset="UTF-8" src="../../../build/node_modules/react-dom/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.js"></script>
+  <div id="container"></div>
+  <script type="text/babel">
+  function D1() {return 'D1'}
+  function D2() {return 'D2'}
+  class C1 extends React.Component {
+      render() {
+        return (
+          <div>
+            c1
+            <D1 />
+            <D2 />
+          </div>
+        )
+      }
+    }
+  class B2 extends React.Component {
+      render() {
+        return (
+          <div>
+            b2
+            <C1 />
+          </div>
+        )
+      }
+    }
+    class A1 extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = {
+          list: [ 
+            { key: 'id1', content: 't1' },
+            { key: 'id2', content: 't2' }
+          ]
+        }
+      }
+      static getDerivedStateFromProps() {
+        return {
+          count: 1
+        }
+      }
+      handleRemove() {
+        this.setState({
+          list: [ 
+            { key: 'id2', content: 't2' }
+          ]
+        })
+        // effect: 
+        // { efftag: delete, ... }
+      }
+      render() {
+        const { list } = this.state;
+        return (
+          <div>
+            <button onClick={this.handleRemove.bind(this)}>handleRemove</button>
+            {
+              list.map(({ key, content }) => {
+                return (
+                  <li key={key}>{ content }</li>
+                )
+              })
+            }
+          </div>
+        )
+      }
+    }
+    function B1() { return 'B1' }
+    function B3() { return <C2 /> }
+    function C2() { return 'C2' }
+    ReactDOM.render(
+      <A1 />,
+      document.getElementById('container')
+    );
+
+    /*
+    current:
+    {
+      t1,
+      t2
+    }
+    workInprogress
+    {
+      t1
+    }
+    */
+  </script>
+</body>
+
 </html>

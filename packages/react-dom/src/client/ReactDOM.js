@@ -367,6 +367,7 @@ function ReactRoot(
   isConcurrent: boolean,
   hydrate: boolean,
 ) {
+  // 返回 一个 FiberRoot
   const root = createContainer(container, isConcurrent, hydrate);
   this._internalRoot = root;
 }
@@ -491,7 +492,7 @@ setBatchingImplementation(
 );
 
 let warnedAboutHydrateAPI = false;
-
+// 初始化挂载，会创建 root
 function legacyCreateRootFromDOMContainer(
   container: DOMContainer,
   forceHydrate: boolean,
@@ -499,6 +500,7 @@ function legacyCreateRootFromDOMContainer(
   const shouldHydrate =
     forceHydrate || shouldHydrateDueToLegacyHeuristic(container);
   // First clear any existing content.
+  // 需不需要 "调和"，客户端渲染和服务端渲染之分。
   if (!shouldHydrate) {
     let warned = false;
     let rootSibling;
@@ -536,7 +538,7 @@ function legacyCreateRootFromDOMContainer(
   const isConcurrent = false;
   return new ReactRoot(container, isConcurrent, shouldHydrate);
 }
-
+// 1：得到 一个 fiberRoot，2： 调用 render 方法
 function legacyRenderSubtreeIntoContainer(
   parentComponent: ?React$Component<any, any>,
   children: ReactNodeList,
@@ -553,6 +555,7 @@ function legacyRenderSubtreeIntoContainer(
   let root: Root = (container._reactRootContainer: any);
   if (!root) {
     // Initial mount
+    // 初始化 挂载：创建一个 root
     root = container._reactRootContainer = legacyCreateRootFromDOMContainer(
       container,
       forceHydrate,
@@ -565,6 +568,7 @@ function legacyRenderSubtreeIntoContainer(
       };
     }
     // Initial mount should not be batched.
+    // 批量更新
     unbatchedUpdates(() => {
       if (parentComponent != null) {
         root.legacy_renderSubtreeIntoContainer(
@@ -573,6 +577,7 @@ function legacyRenderSubtreeIntoContainer(
           callback,
         );
       } else {
+        // render ???
         root.render(children, callback);
       }
     });
@@ -610,7 +615,7 @@ function createPortal(
   // TODO: pass ReactDOM portal implementation as third argument
   return createPortalImpl(children, container, null, key);
 }
-
+// flow
 const ReactDOM: Object = {
   createPortal,
 
@@ -669,7 +674,7 @@ const ReactDOM: Object = {
       callback,
     );
   },
-
+  // ReactDOM.render
   render(
     element: React$Element<any>,
     container: DOMContainer,

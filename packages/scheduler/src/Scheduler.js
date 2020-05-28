@@ -10,7 +10,8 @@
 
 import {enableSchedulerDebugging} from './SchedulerFeatureFlags';
 
-// TODO: Use symbols?
+// 数字越小优先级越高 
+// TODO: Use symbols?  
 var ImmediatePriority = 1;
 var UserBlockingPriority = 2;
 var NormalPriority = 3;
@@ -20,12 +21,15 @@ var IdlePriority = 5;
 // Max 31 bit integer. The max integer size in V8 for 32-bit systems.
 // Math.pow(2, 30) - 1
 // 0b111111111111111111111111111111
-var maxSigned31BitInt = 1073741823;
+var maxSigned31BitInt = 1073741823;  // 12.427天
 
+// 5种优先级依次对应5个过期时间：过期时间越小的代表优先级越高
 // Times out immediately
 var IMMEDIATE_PRIORITY_TIMEOUT = -1;
 // Eventually times out
-var USER_BLOCKING_PRIORITY = 250;
+// 100   100 + 250ms 任务还没被执行，就认为超时
+var USER_BLOCKING_PRIORITY = 250;  // 最长等待时间
+// 
 var NORMAL_PRIORITY_TIMEOUT = 5000;
 var LOW_PRIORITY_TIMEOUT = 10000;
 // Never times out
@@ -51,11 +55,13 @@ var hasNativePerformanceNow =
   typeof performance === 'object' && typeof performance.now === 'function';
 
 function ensureHostCallbackIsScheduled() {
+  // 已经调度过程中 line: 50
   if (isExecutingCallback) {
     // Don't schedule work yet; wait until the next time we yield.
     return;
   }
   // Schedule the host callback using the earliest expiration in the list.
+  // 调用第一个回调
   var expirationTime = firstCallbackNode.expirationTime;
   if (!isHostCallbackScheduled) {
     isHostCallbackScheduled = true;
@@ -66,6 +72,8 @@ function ensureHostCallbackIsScheduled() {
   requestHostCallback(flushWork, expirationTime);
 }
 
+// flushWork根据didTimeout参数有两种处理逻辑，如果为true，就会把任务链表里的过期任务全都给执行一遍；
+// 如果为false则在当前帧到期之前尽可能多的去执行任务。
 function flushFirstCallback() {
   var flushedNode = firstCallbackNode;
 
@@ -188,6 +196,7 @@ function flushWork(didTimeout) {
   const previousDidTimeout = currentDidTimeout;
   currentDidTimeout = didTimeout;
   try {
+    // 任务过期
     if (didTimeout) {
       // Flush all the expired callbacks without yielding.
       while (
@@ -313,8 +322,13 @@ function unstable_wrapCallback(callback) {
     }
   };
 }
-
+/**
+ * 一个加强版的 requestIdleCallback
+ unstable_scheduleCallback(() => {}, { timeout: })
+ callback: performAsyncWork
+ */
 function unstable_scheduleCallback(callback, deprecated_options) {
+  // 任务的开始时间
   var startTime =
     currentEventStartTime !== -1 ? currentEventStartTime : getCurrentTime();
 
@@ -325,8 +339,10 @@ function unstable_scheduleCallback(callback, deprecated_options) {
     typeof deprecated_options.timeout === 'number'
   ) {
     // FIXME: Remove this branch once we lift expiration times out of React.
+    // 计算得到过期时间
     expirationTime = startTime + deprecated_options.timeout;
   } else {
+    // 将来 计算 expiration times 会移到这个模块来
     switch (currentPriorityLevel) {
       case ImmediatePriority:
         expirationTime = startTime + IMMEDIATE_PRIORITY_TIMEOUT;
@@ -357,32 +373,45 @@ function unstable_scheduleCallback(callback, deprecated_options) {
   // Insert the new callback into the list, ordered first by expiration, then
   // by insertion. So the new callback is inserted any other callback with
   // equal expiration.
+  // firstCallbackNode：在链表里面的第一个回调
   if (firstCallbackNode === null) {
     // This is the first callback in the list.
+    // 
     firstCallbackNode = newNode.next = newNode.previous = newNode;
+    // 任务 从无到有，立即启动
     ensureHostCallbackIsScheduled();
   } else {
     var next = null;
     var node = firstCallbackNode;
+    // 按照优先级高低排序
+    // 按照优先级 把这个任务插到链表里面
     do {
+      // 过期时间越小，优先级越高
       if (node.expirationTime > expirationTime) {
         // The new callback expires before this one.
         next = node;
         break;
       }
       node = node.next;
-    } while (node !== firstCallbackNode);
+    } while (node !== firstCallbackNode); // 环形链表防止 死循环
 
     if (next === null) {
       // No callback with a later expiration was found, which means the new
       // callback has the latest expiration in the list.
+      // 新加入的回调，是最晚过期的, 放到最后
       next = firstCallbackNode;
     } else if (next === firstCallbackNode) {
+      // 新加入的 cb 是 最早过期的
       // The new callback has the earliest expiration in the entire list.
       firstCallbackNode = newNode;
+      // 新加入的节点，优先级最高，也要立即启动调度
       ensureHostCallbackIsScheduled();
     }
+    // firstCallbackNode 一个个调度的任务，
+    // next 下一个调度的任务
 
+    // 双向链表的 插入操作
+    // 
     var previous = next.previous;
     previous.next = next.previous = newNode;
     newNode.next = next;
@@ -483,20 +512,24 @@ var getCurrentTime;
 var ANIMATION_FRAME_TIMEOUT = 100;
 var rAFID;
 var rAFTimeoutID;
+// callback 就是 animationTick
 var requestAnimationFrameWithTimeout = function(callback) {
+  // rAF setTimeout 竞争关系，可以相互取消
   // schedule rAF and also a setTimeout
+  // window rAF
   rAFID = localRequestAnimationFrame(function(timestamp) {
     // cancel the setTimeout
     localClearTimeout(rAFTimeoutID);
     callback(timestamp);
   });
+  // rAF 切换到后台就不运行，这时候 settimeout 上场
   rAFTimeoutID = localSetTimeout(function() {
     // cancel the requestAnimationFrame
     localCancelAnimationFrame(rAFID);
     callback(getCurrentTime());
   }, ANIMATION_FRAME_TIMEOUT);
 };
-
+// 获取当前时间
 if (hasNativePerformanceNow) {
   var Performance = performance;
   getCurrentTime = function() {
@@ -578,7 +611,7 @@ if (globalValue && globalValue._schedMock) {
       );
     }
   }
-
+  // 任务链表的执行器
   var scheduledHostCallback = null;
   var isMessageEventScheduled = false;
   var timeoutTime = -1;
@@ -592,7 +625,7 @@ if (globalValue && globalValue._schedMock) {
   // will adjust this value to a faster fps if we get more frequent animation
   // frames.
   var previousFrameTime = 33;
-  var activeFrameTime = 33;
+  var activeFrameTime = 33;  // 一帧的渲染时间33ms，这里假设 1s 30帧
 
   shouldYieldToHost = function() {
     return frameDeadline <= getCurrentTime();
@@ -612,12 +645,13 @@ if (globalValue && globalValue._schedMock) {
     var currentTime = getCurrentTime();
 
     var didTimeout = false;
-    if (frameDeadline - currentTime <= 0) {
+    if (frameDeadline - currentTime <= 0) {   // 当前帧过期
       // There's no time left in this idle period. Check if the callback has
       // a timeout and whether it's been exceeded.
       if (prevTimeoutTime !== -1 && prevTimeoutTime <= currentTime) {
         // Exceeded the timeout. Invoke the callback even though there's no
         // time left.
+        // 当前任务过期
         didTimeout = true;
       } else {
         // No timeout.
@@ -653,14 +687,16 @@ if (globalValue && globalValue._schedMock) {
       // waited until the end of the frame to post the callback, we risk the
       // browser skipping a frame and not firing the callback until the frame
       // after that.
+      // 下一帧
       requestAnimationFrameWithTimeout(animationTick);
     } else {
       // No pending work. Exit.
       isAnimationFrameScheduled = false;
       return;
     }
-
+    // 
     var nextFrameTime = rafTime - frameDeadline + activeFrameTime;
+    // 
     if (
       nextFrameTime < activeFrameTime &&
       previousFrameTime < activeFrameTime
@@ -690,8 +726,11 @@ if (globalValue && globalValue._schedMock) {
   };
 
   requestHostCallback = function(callback, absoluteTimeout) {
+    // 
     scheduledHostCallback = callback;
     timeoutTime = absoluteTimeout;
+    // 上次还有任务没有执行完成，或者任务到了过期时间，插队，走“绿色通道”（MessageChannel）
+    // MessageChannel 宏任务，不阻塞浏览器主线程的
     if (isFlushingHostCallback || absoluteTimeout < 0) {
       // Don't wait for the next frame. Continue working ASAP, in a new event.
       port.postMessage(undefined);
@@ -730,3 +769,13 @@ export {
   unstable_getFirstCallbackNode,
   getCurrentTime as unstable_now,
 };
+/**
+ * 
+任务调度流程：
+1、任务根据优先级和加入时的当前时间来确定过期时间
+2、任务根据过期时间加入任务链表
+3、任务链表有两种情况会启动任务的调度，1是任务链表从无到有时，2是任务链表加入了新的最高优先级任务时。
+4、任务调度指的是在合适的时机去执行任务，这里通过requestAnimationFrame和messageChannel来模拟
+5、requestAnimationFrame回调在帧首执行，用来计算当前帧的截止时间并开启递归，messageChannel的回调在帧末执行，根据当前帧的【截止时间、当前时间、任务链表第一个任务的过期时间】来决定当前帧是否执行任务（或是到下一帧执行）
+6、如果执行任务，则根据任务是否过期来确定如何执行任务。任务过期的话就会把任务链表内过期的任务都执行一遍直到没有过期任务或者没有任务；任务没过期的话，则会在当前帧过期之前尽可能多的执行任务。最后如果还有任务，则回到第5步，放到下一帧再重新走流程。
+ */

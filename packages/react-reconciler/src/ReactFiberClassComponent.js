@@ -199,6 +199,7 @@ const classComponentUpdater = {
     scheduleWork(fiber, expirationTime);
   },
   enqueueReplaceState(inst, payload, callback) {
+    // 得到 实例的 fiber
     const fiber = getInstance(inst);
     const currentTime = requestCurrentTime();
     const expirationTime = computeExpirationForFiber(currentTime, fiber);

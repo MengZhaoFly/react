@@ -12,7 +12,9 @@ import {REACT_ELEMENT_TYPE} from 'shared/ReactSymbols';
 import ReactCurrentOwner from './ReactCurrentOwner';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
-
+/**
+ * 保留属性
+ */
 const RESERVED_PROPS = {
   key: true,
   ref: true,

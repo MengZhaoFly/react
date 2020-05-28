@@ -15,9 +15,9 @@ export const PerformedWork = /*         */ 0b000000000001;
 
 // You can change the rest (and add more).
 export const Placement = /*             */ 0b000000000010;
-export const Update = /*                */ 0b000000000100;
+export const Update = /*                */ 0b000000000100;   // 4
 export const PlacementAndUpdate = /*    */ 0b000000000110;
-export const Deletion = /*              */ 0b000000001000;
+export const Deletion = /*              */ 0b000000001000;   // 8
 export const ContentReset = /*          */ 0b000000010000;
 export const Callback = /*              */ 0b000000100000;
 export const DidCapture = /*            */ 0b000001000000;

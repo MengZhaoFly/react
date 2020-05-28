@@ -13,6 +13,7 @@ export type ExpirationTime = number;
 
 export const NoWork = 0;
 export const Never = 1;
+// expirationTime 越大优先级越高
 export const Sync = MAX_SIGNED_31_BIT_INT;
 
 const UNIT_SIZE = 10;
